@@ -6,10 +6,15 @@
 #include <ms5611.h>
 #include <gps.h>
 #include <SD.h>
-
+#include "rrc_encoder/src/rrc_encoder.h"
 
 ////    Defines    ////
-#define DEBUG   true
+#define DEBUG       true
+#define RFD_BAUD    57600
+#define RFD_SERIAL  Serial2
+#define GPS_SERIAL  Serial1
+#define ADXL_WIRE   Wire
+#define BARO_WIRE   Wire2
 
 
 ////    Globals    ////
@@ -31,12 +36,9 @@ Location:    %f, %f
 )""";
 
 
-////    debug function    ////
-void debug()
-{
-    static int count = 0;
-    Serial.printf("debug    %d\n", count++);
-}
+////    Functions declairations    ////
+void transmit   (double data, uint8_t header);
+void debug      ();
 
 
 ////    Initilization setup    ////
@@ -48,7 +50,7 @@ void setup(void)
     Serial.println("serial monitor started");
 
     // init ADXL357
-    while(adxl357.init(ADXL357_DEF_ADD, &Wire))
+    while(adxl357.init(ADXL357_DEF_ADD, &ADXL_WIRE))
     {
         Serial.println("Can't detect an ADXL357 device");
         delay(1000);
@@ -62,7 +64,7 @@ void setup(void)
     delay(100);
 
     // init MS5611
-    while(baro.init(&Wire2))
+    while(baro.init(&BARO_WIRE))
     {
         Serial.println("Can't detect an MS5611 device");
         delay(1000);
@@ -72,7 +74,7 @@ void setup(void)
     delay(100);
 
     // init GPS
-    gps.init(&Serial1, 9600);
+    gps.init(&GPS_SERIAL, 9600);
 
     Serial.println("GPS init OK");
     delay(100);
@@ -86,16 +88,24 @@ void setup(void)
 
     Serial.println("card initialized.");
     delay(100);
+
+    // init RFD
+    RFD_SERIAL.begin(RFD_BAUD);
+
+    Serial.println("RFD init OK");
+    delay(100);
+
 }
 
 
 ////    Main loop    ////
 void loop(void)
 {
-    double x, y, z, r = 0;
-    double temp, pres, lon, lat;
-    char   string[256] = {0};
-    uint32_t start = millis();          // store current time
+    double   temp, pres, lon, lat;
+    double   x, y, z, r  = 0;
+    char     string[256] = {0};
+    uint8_t  package[10] = {0};
+    uint32_t start       = millis();          // store current time
 
 
     // read ADXL357
@@ -150,10 +160,36 @@ void loop(void)
     }
 
 
+    // encode and transmit data
+    transmit(x,    RRC_HEAD_ACC_X);
+    transmit(y,    RRC_HEAD_ACC_Y);
+    transmit(z,    RRC_HEAD_ACC_Z);
+    transmit(temp, RRC_HEAD_TEMP);
+    transmit(pres, RRC_HEAD_PRESS);
+    transmit(lat,  RRC_HEAD_GPS_LAT);
+    transmit(lon,  RRC_HEAD_GPS_LONG);
+
+
     // loop end lable
     loopEnd:
     while(millis() - start <= freq);
     
     loopEndNoDelay:
         ;
+}
+
+
+////    helper functions    ////
+void transmit(double data, uint8_t header)
+{
+    uint8_t  package[10] = {0};
+    encode(data, header, timestamp, package);
+    RFD_SERIAL.write(package, 10);
+}
+
+
+void debug()
+{
+    static int count = 0;
+    Serial.printf("debug    %d\n", count++);
 }
