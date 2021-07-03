@@ -30,3 +30,6 @@ The following tasks need to be done:
 * Make the GPS update at 10 Hz for both NMEA and ublox modules
 * Handle sensor initalization errors
 * Order a PCB and field test the system
+* Simulate power transients with Eagle/Kicad
+* rfd900+ frequency switching 
+* Bay thermodynamics
