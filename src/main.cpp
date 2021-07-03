@@ -28,10 +28,10 @@ uint32_t    timestamp = 0;
 ////    Constants    ////
 const char outputFormat[] = 
 R"""(
-timestamp:   %u
+timestamp:   %lu
 x = %lf g    y = %lf g   z = %lf g   total = %lf g
 T = %lf C    P = %lf mbar
-Location:    %f, %f
+Location:    %lf, %lf
 
 )""";
 
@@ -104,7 +104,6 @@ void loop(void)
     double   temp, pres, lon, lat;
     double   x, y, z, r  = 0;
     char     string[256] = {0};
-    uint8_t  package[10] = {0};
     uint32_t start       = millis();          // store current time
 
 
