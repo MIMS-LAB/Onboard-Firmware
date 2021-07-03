@@ -1,0 +1,9 @@
+[submodule "lib/gps"]
+	path = lib/gps
+	url = https://github.com/Ryerson-Rocketry/Library-GPS-Arduino.git
+[submodule "lib/ms5611"]
+	path = lib/ms5611
+	url = https://github.com/Ryerson-Rocketry/Library-MS5611-Arduino.git
+[submodule "lib/adxl357"]
+	path = lib/adxl357
+	url = https://github.com/Ryerson-Rocketry/Library-ADXL357-Arduino.git
