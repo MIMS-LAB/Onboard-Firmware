@@ -7,3 +7,6 @@
 [submodule "lib/adxl357"]
 	path = lib/adxl357
 	url = https://github.com/Ryerson-Rocketry/Library-ADXL357-Arduino.git
+[submodule "lib/rrc_encoder"]
+	path = lib/rrc_encoder
+	url = https://github.com/Ryerson-Rocketry/Library-RRC-encoder.git
