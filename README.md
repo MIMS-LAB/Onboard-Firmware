@@ -12,3 +12,21 @@ download it, then run the following:
 git submodule init
 git submodule update
 ```
+
+
+## Current status
+
+The firmware at the moment successfuly does the folllwing:
+
+* Initlizie and read sensors:
+  * ADXL357 accelerometer
+  * MS5611 barometer
+  * Generic NMEA GPS
+* Write readings to builtin SD card
+* Transmit the collected data after encoding
+
+The following tasks need to be done:
+
+* Make the GPS update at 10 Hz for both NMEA and ublox modules
+* Handle sensor initalization errors
+* Order a PCB and field test the system
