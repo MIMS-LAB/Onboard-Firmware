@@ -1,32 +1,12 @@
 ////    Includes    ////
 #include <Arduino.h>
 #include <math.h>
-
-#include <adxl357.h>
-#include <ms5611.h>
-#include <gps.h>
-#include <SD.h>
-#include "rrc_encoder/src/rrc_encoder.h"
-
-////    Defines    ////
-#define DEBUG       true
-#define RFD_BAUD    57600
-#define RFD_SERIAL  Serial2
-#define GPS_SERIAL  Serial1
-#define ADXL_WIRE   Wire
-#define BARO_WIRE   Wire2
-
-
-////    Globals    ////
-Adxl357     adxl357;
-Ms5611      baro;
-GPS         gps;
-uint32_t    freq = 1000;
-uint32_t    timestamp = 0;
+#include "helpers.h"
 
 
 ////    Constants    ////
-const char outputFormat[] = 
+String      logFileName    = "log.txt";
+const char  outputFormat[] = 
 R"""(
 timestamp:   %lu
 x = %lf g    y = %lf g   z = %lf g   total = %lf g
@@ -36,106 +16,79 @@ Location:    %lf, %lf
 )""";
 
 
-////    Functions declairations    ////
-void transmit   (double data, uint8_t header);
-void debug      ();
-
-
 ////    Initilization setup    ////
 void setup(void)
 {
+    pinMode(BUZZER, OUTPUT);
+    pinMode(BUZZER_ENABLE, INPUT_PULLUP);
+    buzzFor(1000, 1000);
+
     // start serial monitor
     Serial.begin(9600);
-    while(!Serial);
+    if(!Serial)
+    {
+        buzzFor(100, 50);
+        buzzFor(100, 500);
+    }
     Serial.println("serial monitor started");
 
-    // init ADXL357
-    while(adxl357.init(ADXL357_DEF_ADD, &ADXL_WIRE))
-    {
-        Serial.println("Can't detect an ADXL357 device");
-        delay(1000);
-    }
-
-    adxl357.setAccelRange(ADXL357_FOUTY_G);
-    adxl357.setPowerCTL(ADXL357_ALL_ON);
-    adxl357.setCalibrationConstant(1.0 / (double) 12490);  // calculate your own calibration constant
-
-    Serial.println("ADXL357 init OK");
-    delay(100);
-
-    // init MS5611
-    while(baro.init(&BARO_WIRE))
-    {
-        Serial.println("Can't detect an MS5611 device");
-        delay(1000);
-    }
-
-    Serial.println("MS5611 init OK");
-    delay(100);
-
-    // init GPS
-    gps.init(&GPS_SERIAL, 9600);
-
-    Serial.println("GPS init OK");
-    delay(100);
-
-    // init SD card
-    while(!SD.begin(BUILTIN_SDCARD))
-    {
-        Serial.println("Card failed or not present");
-        delay(1000);
-    }
-
-    Serial.println("card initialized.");
-    delay(100);
-
-    // init RFD
-    RFD_SERIAL.begin(RFD_BAUD);
-
-    Serial.println("RFD init OK");
-    delay(100);
-
+    setParts();
 }
 
 
 ////    Main loop    ////
 void loop(void)
 {
+    const  uint32_t    freq = 1000;
+    static uint32_t    timestamp = 0;
+
     double   temp, pres, lon, lat;
     double   x, y, z, r  = 0;
     char     string[256] = {0};
     uint32_t start       = millis();          // store current time
 
+    setParts();
+
 
     // read ADXL357
-    if(adxl357.isDataReady())
+    if(partsStates.adxl)
     {
-        if (adxl357.getScaledAccelData(&x, &y, &z))
+        if(adxl357.isDataReady())
         {
-            Serial.printf("acceleration read failed\n");
-            goto accelReadBreak;
-        }
+            if (adxl357.getScaledAccelData(&x, &y, &z))
+            {
+                Serial.printf("acceleration read failed\n");
+                goto accelReadBreak;
+            }
 
-        r = sqrt(x*x + y*y + z*z);
+            r = sqrt(x*x + y*y + z*z);
+        }
+        else
+        {
+            Serial.printf("acceleration data is not ready\n");
+        }
+        accelReadBreak:
+            ;
     }
-    else
-    {
-        Serial.printf("acceleration data is not ready\n");
-    }
-    accelReadBreak:
 
 
     // read MS5611
-    if(baro.getTempPress(&temp, &pres))
+    if(partsStates.baro)
     {
-        Serial.printf("baro read failed\n");
+        if(baro.getTempPress(&temp, &pres))
+        {
+            Serial.printf("baro read failed\n");
+        }
     }
 
 
     // read gps
-    if(gps.readLocation(&lon, &lat, freq))
+    if(partsStates.gps)
     {
-        Serial.printf("gps read failed\n");
+        if(gps.readLocation(&lon, &lat, freq))
+        {
+            Serial.printf("gps read failed\n");
+        }
     }
 
 
@@ -146,27 +99,31 @@ void loop(void)
 
     Serial.printf("%s", string);
     
-    File dataFile = SD.open("log.txt", FILE_WRITE);
+    if(partsStates.sdcard)
+    {
+        File dataFile = SD.open(logFileName.c_str(), FILE_WRITE);
 
-    if (dataFile)
-    {
-        dataFile.println(string);
-        dataFile.close();
-    } 
-    else
-    {
-        Serial.println("error opening datalog.txt");
+        if (dataFile)
+        {
+            dataFile.println(string);
+            dataFile.close();
+        } 
+        else
+        {
+            Serial.printf("error opening %s\n", logFileName.c_str());
+            partsStates.sdcard = false;
+        }
     }
 
 
     // encode and transmit data
-    transmit(x,    RRC_HEAD_ACC_X);
-    transmit(y,    RRC_HEAD_ACC_Y);
-    transmit(z,    RRC_HEAD_ACC_Z);
-    transmit(temp, RRC_HEAD_TEMP);
-    transmit(pres, RRC_HEAD_PRESS);
-    transmit(lat,  RRC_HEAD_GPS_LAT);
-    transmit(lon,  RRC_HEAD_GPS_LONG);
+    transmit(x,    RRC_HEAD_ACC_X,    timestamp);
+    transmit(y,    RRC_HEAD_ACC_Y,    timestamp);
+    transmit(z,    RRC_HEAD_ACC_Z,    timestamp);
+    transmit(temp, RRC_HEAD_TEMP,     timestamp);
+    transmit(pres, RRC_HEAD_PRESS,    timestamp);
+    transmit(lat,  RRC_HEAD_GPS_LAT,  timestamp);
+    transmit(lon,  RRC_HEAD_GPS_LONG, timestamp);
 
 
     // loop end lable
@@ -175,20 +132,4 @@ void loop(void)
     
     loopEndNoDelay:
         ;
-}
-
-
-////    helper functions    ////
-void transmit(double data, uint8_t header)
-{
-    uint8_t  package[10] = {0};
-    encode(data, header, timestamp, package);
-    RFD_SERIAL.write(package, 10);
-}
-
-
-void debug()
-{
-    static int count = 0;
-    Serial.printf("debug    %d\n", count++);
 }
