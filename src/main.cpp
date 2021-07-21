@@ -25,13 +25,18 @@ void setup(void)
 
     // start serial monitor
     Serial.begin(9600);
-    if (Serial.available()==0)// basically to conserve power since rocket is going to be idle on platorm for awhile dont do anything until bit is sent
+    int count =0; 
+    while (Serial.available()==0)// basically rfd uses the most power & since rocket is going to be idle on platorm for awhile dont do anything until bit is sent
     {
         buzzFor(100, 50);
         buzzFor(100, 500);
-        Serial.print("Send byte to begin");
-        while(1); 
+        delay(5000);//5 sec delay
+        count = count +1; 
+        if (count % 5 == 0 )
+        {
+            Serial.print("Send byte to begin");
 
+        }
     }
     Serial.println("serial monitor started");
 

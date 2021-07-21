@@ -70,6 +70,11 @@ void buzzFor(unsigned int time_ms, unsigned int after)
         digitalWrite(BUZZER, LOW);
         delay(after);
     }
+    else 
+    {
+        digitalWrite(BUZZER, LOW);
+
+    }
 }
 
 
@@ -99,6 +104,7 @@ void setParts(void)
 
 
     // init MS5611
+    /*
     if(!partsStates.baro)
     {
         if(baro.init(&BARO_WIRE))
@@ -117,7 +123,7 @@ void setParts(void)
             buzzFor(50, 100);
         }
     }
-
+*/
 
     // init GPS
     if(!partsStates.gps)
