@@ -25,7 +25,7 @@ void setup(void)
 
     // start serial monitor
     Serial.begin(9600);
-    if(!Serial)
+    while (Serial.available()==0 )// basically to conserve power since rocket is going to be idle on platorm for awhile dont do anything until bit is sent
     {
         buzzFor(100, 50);
         buzzFor(100, 500);
@@ -132,4 +132,4 @@ void loop(void)
     
     loopEndNoDelay:
         ;
-}
+} 

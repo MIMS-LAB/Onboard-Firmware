@@ -9,7 +9,7 @@
 #include <ms5611.h>
 #include <SD.h>
 #include "rrc_encoder/src/rrc_encoder.h"
-
+#include <math.h>
 
 ////    Defines    ////
 #define RFD_BAUD      57600
@@ -19,6 +19,8 @@
 #define BARO_WIRE     Wire2
 #define BUZZER        PIN_A13
 #define BUZZER_ENABLE PIN_A12
+
+
 
 
 ////    Objects    ////
@@ -32,7 +34,8 @@ struct
     bool    gps    = false;
     bool    sdcard = false;
     bool    rfd    = false;
-} partsStates;
+    
+ } partsStates;
 
 
 ////    Functions declairations    ////
@@ -105,6 +108,7 @@ void setParts(void)
             buzzFor(500, 50);
             buzzFor(50, 50);
             buzzFor(50, 250);
+
         }
         else
         {
@@ -148,6 +152,7 @@ void setParts(void)
             buzzFor(50, 50);
             buzzFor(50, 50);
             buzzFor(50, 250);
+
         }
         else
         {
