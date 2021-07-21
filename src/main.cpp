@@ -25,10 +25,13 @@ void setup(void)
 
     // start serial monitor
     Serial.begin(9600);
-    while (Serial.available()==0 )// basically to conserve power since rocket is going to be idle on platorm for awhile dont do anything until bit is sent
+    if (Serial.available()==0)// basically to conserve power since rocket is going to be idle on platorm for awhile dont do anything until bit is sent
     {
         buzzFor(100, 50);
         buzzFor(100, 500);
+        Serial.print("Send byte to begin");
+        while(1); 
+
     }
     Serial.println("serial monitor started");
 
@@ -73,6 +76,7 @@ void loop(void)
 
 
     // read MS5611
+    /*
     if(partsStates.baro)
     {
         if(baro.getTempPress(&temp, &pres))
@@ -80,6 +84,7 @@ void loop(void)
             Serial.printf("baro read failed\n");
         }
     }
+    */
 
 
     // read gps
