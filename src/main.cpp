@@ -36,11 +36,11 @@ void setup(void)
             buzzFor(100, 50);
             buzzFor(100, 500);
             // every ~15min [(count*delay)/(1000*60)]
-            Serial.print("Send byte to begin");//debug by printing to virtual port
+            Serial.println("Send byte to begin");//debug by printing to virtual port
             //RFD_SERIAL.write(11111); <== use when RFD is actually connected
 
             break;
-        case (101):
+        case (10):
             count =0; 
             break;
         }
@@ -48,7 +48,7 @@ void setup(void)
     
         
         count = count +1; 
-        delay(9000);
+        delay(startSerial_ms_timeDelay);//  delay
 
 
     }

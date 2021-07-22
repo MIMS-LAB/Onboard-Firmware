@@ -20,7 +20,8 @@
 #define BARO_WIRE     Wire2
 #define BUZZER        PIN_A13
 #define BUZZER_ENABLE PIN_A12
-
+#define startSerial_ms_timeDelay 90000 
+//#define startSerial_min_timeDelay 15
 
 ////    Objects    ////
 Adxl357     adxl357;
