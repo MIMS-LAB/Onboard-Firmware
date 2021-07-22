@@ -11,6 +11,7 @@
 #include "rrc_encoder/src/rrc_encoder.h"
 #include <math.h>
 
+
 ////    Defines    ////
 #define RFD_BAUD      57600
 #define RFD_SERIAL    Serial2
@@ -19,8 +20,6 @@
 #define BARO_WIRE     Wire2
 #define BUZZER        PIN_A13
 #define BUZZER_ENABLE PIN_A12
-
-
 
 
 ////    Objects    ////
@@ -50,7 +49,7 @@ void transmit(double data, uint8_t header, uint32_t time)
 {
     uint8_t  package[10] = {0};
     encode(data, header, time, package);
-    RFD_SERIAL.write(package, 10);
+    //RFD_SERIAL.write(package, 10);
 }
 
 
@@ -59,7 +58,6 @@ void debug(void)
     static int count = 0;
     Serial.printf("debug    %d\n", count++);
 }
-
 
 void buzzFor(unsigned int time_ms, unsigned int after)
 {
@@ -104,7 +102,7 @@ void setParts(void)
 
 
     // init MS5611
-    /*
+    
     if(!partsStates.baro)
     {
         if(baro.init(&BARO_WIRE))
@@ -123,7 +121,7 @@ void setParts(void)
             buzzFor(50, 100);
         }
     }
-*/
+
 
     // init GPS
     if(!partsStates.gps)

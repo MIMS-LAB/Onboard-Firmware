@@ -22,22 +22,37 @@ void setup(void)
     pinMode(BUZZER, OUTPUT);
     pinMode(BUZZER_ENABLE, INPUT_PULLUP);
     buzzFor(1000, 1000);
-
+    int count=0;
     // start serial monitor
     Serial.begin(9600);
-    int count =0; 
+    
     while (Serial.available()==0)// basically rfd uses the most power & since rocket is going to be idle on platorm for awhile dont do anything until bit is sent
     {
-        buzzFor(100, 50);
-        buzzFor(100, 500);
-        delay(5000);//5 sec delay
-        count = count +1; 
-        if (count % 5 == 0 )
+        switch(count)
         {
-            Serial.print("Send byte to begin");
+            
+        case 0:
 
+            buzzFor(100, 50);
+            buzzFor(100, 500);
+            // every ~15min [(count*delay)/(1000*60)]
+            Serial.print("Send byte to begin");//debug by printing to virtual port
+            //RFD_SERIAL.write(11111); <== use when RFD is actually connected
+
+            break;
+        case (101):
+            count =0; 
+            break;
         }
+        
+    
+        
+        count = count +1; 
+        delay(9000);
+
+
     }
+
     Serial.println("serial monitor started");
 
     setParts();
@@ -81,7 +96,7 @@ void loop(void)
 
 
     // read MS5611
-    /*
+    
     if(partsStates.baro)
     {
         if(baro.getTempPress(&temp, &pres))
@@ -89,7 +104,7 @@ void loop(void)
             Serial.printf("baro read failed\n");
         }
     }
-    */
+    
 
 
     // read gps
