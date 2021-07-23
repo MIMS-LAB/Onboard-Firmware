@@ -9,7 +9,6 @@
 #include <ms5611.h>
 #include <SD.h>
 #include "rrc_encoder/src/rrc_encoder.h"
-#include <math.h>
 
 
 ////    Defines    ////
@@ -20,7 +19,8 @@
 #define BARO_WIRE     Wire2
 #define BUZZER        PIN_A13
 #define BUZZER_ENABLE PIN_A12
-#define startSerial_ms_timeDelay 90000 
+#define startSerial_ms_timeDelay 90000
+ 
 //#define startSerial_min_timeDelay 15
 
 ////    Objects    ////
@@ -50,7 +50,7 @@ void transmit(double data, uint8_t header, uint32_t time)
 {
     uint8_t  package[10] = {0};
     encode(data, header, time, package);
-    //RFD_SERIAL.write(package, 10);
+    RFD_SERIAL.write(package, 10);
 }
 
 
@@ -68,11 +68,6 @@ void buzzFor(unsigned int time_ms, unsigned int after)
         delay(time_ms);
         digitalWrite(BUZZER, LOW);
         delay(after);
-    }
-    else 
-    {
-        digitalWrite(BUZZER, LOW);
-
     }
 }
 
@@ -103,7 +98,7 @@ void setParts(void)
 
 
     // init MS5611
-    
+    /*
     if(!partsStates.baro)
     {
         if(baro.init(&BARO_WIRE))
@@ -122,7 +117,7 @@ void setParts(void)
             buzzFor(50, 100);
         }
     }
-
+*/
 
     // init GPS
     if(!partsStates.gps)
