@@ -105,7 +105,7 @@ void loop(void)
     // read gps
     if (partsStates.gps)
     {
-        if (gps.readLocation(&lon, &lat, freq))
+        if (gps.read_RMC(&lon, &lat, freq))
         {
             Serial.printf("gps RMC read failed\n");
         }
