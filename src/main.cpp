@@ -6,7 +6,7 @@
 ////    Constants    ////
 String logFileName = "log.txt";
 const char outputFormat[] =
-    R"""(
+R"""(
 timestamp:   %lu
 x = %lf g    y = %lf g   z = %lf g   total = %lf g
 T = %lf C    P = %lf mbar
@@ -20,37 +20,43 @@ void setup(void)
     pinMode(BUZZER, OUTPUT);
     pinMode(BUZZER_ENABLE, INPUT_PULLUP);
     buzzFor(1000, 1000);
-    int count = 0;
+
     // start serial monitor
     Serial.begin(9600);
-    /*
-    while (Serial.available() == 0) // basically rfd uses the most power & since rocket is going to be idle on platorm for awhile dont do anything until bit is sent
+    if(!Serial)
     {
-        switch (count)
-        {
-
-        case 0:
-
-            buzzFor(100, 50);
-            buzzFor(100, 500);
-            // every ~15min [(count*delay)/(1000*60)]
-            Serial.println("Send byte to begin"); //debug by printing to virtual port
-            //RFD_SERIAL.write(11111); <== use when RFD is actually connected(use as header or indicator for groundstation to  send data)
-
-            break;
-        case (10):
-            count = 0;
-            break;
-        }
-
-        count = count + 1;
-        delay(startSerial_ms_timeDelay); //  delay
+        buzzFor(100, 50);
+        buzzFor(100, 500);
     }
-    */
+    else
+    {
+        Serial.println("serial monitor started");
+    }
 
-    Serial.println("serial monitor started");
 
     setParts();
+
+
+    // basically rfd uses the most power & since rocket is going to be idle on platorm for awhile dont do anything until bit is sent
+    while(true) 
+    {
+        if(RFD_SERIAL.available())
+        {
+            String command = RFD_SERIAL.readStringUntil('\n');
+            command.toLowerCase();
+
+            if(command.equals("launch"))
+            {
+                break;
+            }
+            else
+            {
+                Serial.printf("command \"%s\" unrecognized\n", command.c_str());
+            }
+        }
+    }
+
+    Serial.printf("launching\n");
 }
 
 ////    Main loop    ////
@@ -84,11 +90,10 @@ void loop(void)
         {
             Serial.printf("acceleration data is not ready\n");
         }
-    accelReadBreak:;
+        accelReadBreak:;
     }
 
     // read MS5611
-    /*
     if(partsStates.baro)
     {
         if(baro.getTempPress(&temp, &pres))
@@ -97,59 +102,53 @@ void loop(void)
         }
     }
     
-*/
-
     // read gps
-
     if (partsStates.gps)
     {
-
-        if (gps.readGPS_RMC_DATA(&lon, &lat, freq))
+        if (gps.readLocation(&lon, &lat, freq))
         {
             Serial.printf("gps RMC read failed\n");
         }
         
     }
-        // print stuff to serial and SD card
 
-        sprintf(
-            string, outputFormat,
-            timestamp++, x, y, z, r, temp, pres, lat, lon);
+    // print stuff to serial and SD card
+    sprintf(
+        string, outputFormat,
+        timestamp++, x, y, z, r, temp, pres, lat, lon);
 
-        Serial.printf("%s", string);
+    Serial.printf("%s", string);
 
-        if (partsStates.sdcard)
+    if (partsStates.sdcard)
+    {
+        File dataFile = SD.open(logFileName.c_str(), FILE_WRITE);
+
+        if (dataFile)
         {
-            File dataFile = SD.open(logFileName.c_str(), FILE_WRITE);
-
-            if (dataFile)
-            {
-                dataFile.println(string);
-                dataFile.close();
-            }
-            else
-            {
-                Serial.printf("error opening %s\n", logFileName.c_str());
-                partsStates.sdcard = false;
-            }
+            dataFile.println(string);
+            dataFile.close();
         }
+        else
+        {
+            Serial.printf("error opening %s\n", logFileName.c_str());
+            partsStates.sdcard = false;
+        }
+    }
 
-        // encode and transmit data
-        transmit(x, RRC_HEAD_ACC_X, timestamp);
-        transmit(y, RRC_HEAD_ACC_Y, timestamp);
-        transmit(z, RRC_HEAD_ACC_Z, timestamp);
-        transmit(temp, RRC_HEAD_TEMP, timestamp);
-        transmit(pres, RRC_HEAD_PRESS, timestamp);
-        transmit(lat, RRC_HEAD_GPS_LAT, timestamp);
-        transmit(lon, RRC_HEAD_GPS_LONG, timestamp);
+    // encode and transmit data
+    transmit(x, RRC_HEAD_ACC_X, timestamp);
+    transmit(y, RRC_HEAD_ACC_Y, timestamp);
+    transmit(z, RRC_HEAD_ACC_Z, timestamp);
+    transmit(temp, RRC_HEAD_TEMP, timestamp);
+    transmit(pres, RRC_HEAD_PRESS, timestamp);
+    transmit(lat, RRC_HEAD_GPS_LAT, timestamp);
+    transmit(lon, RRC_HEAD_GPS_LONG, timestamp);
 
     // loop end lable
-    
     loopEnd:
         while (millis() - start <= freq)
             ;
 
     loopEndNoDelay:;
     
-    }
-
+}

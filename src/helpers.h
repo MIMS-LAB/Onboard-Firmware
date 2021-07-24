@@ -20,7 +20,6 @@
 #define BUZZER        PIN_A13
 #define BUZZER_ENABLE PIN_A12
 #define startSerial_ms_timeDelay 90000
- 
 //#define startSerial_min_timeDelay 15
 
 ////    Objects    ////
@@ -34,8 +33,7 @@ struct
     bool    gps    = false;
     bool    sdcard = false;
     bool    rfd    = false;
-    
- } partsStates;
+} partsStates;
 
 
 ////    Functions declairations    ////
@@ -98,7 +96,6 @@ void setParts(void)
 
 
     // init MS5611
-    /*
     if(!partsStates.baro)
     {
         if(baro.init(&BARO_WIRE))
@@ -108,7 +105,6 @@ void setParts(void)
             buzzFor(500, 50);
             buzzFor(50, 50);
             buzzFor(50, 250);
-
         }
         else
         {
@@ -117,7 +113,6 @@ void setParts(void)
             buzzFor(50, 100);
         }
     }
-*/
 
     // init GPS
     if(!partsStates.gps)
