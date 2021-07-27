@@ -55,8 +55,10 @@ void setup(void)
             }
         }
     }
+    
 
     Serial.printf("launching\n");
+    
 }
 
 ////    Main loop    ////
