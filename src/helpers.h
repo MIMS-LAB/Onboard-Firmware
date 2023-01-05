@@ -9,6 +9,7 @@
 #include <ms5611.h>
 #include <SD.h>
 #include "rrc_encoder/src/rrc_encoder.h"
+#include "ICM_20948.h"
 
 
 ////    Defines    ////
@@ -21,6 +22,9 @@
 #define BUZZER_ENABLE PIN_A12
 #define startSerial_ms_timeDelay 90000
 //#define startSerial_min_timeDelay 15
+#define SERIAL_PORT Serial
+#define WIRE_PORT Wire
+#define AD0_VAL 0
 
 ////    Objects    ////
 Adxl357     adxl357;
@@ -34,7 +38,7 @@ struct
     bool    sdcard = false;
     bool    rfd    = false;
 } partsStates;
-
+ICM_20948_I2C myICM;
 
 ////    Functions declairations    ////
 void transmit   (double data, uint8_t header, uint32_t time);
