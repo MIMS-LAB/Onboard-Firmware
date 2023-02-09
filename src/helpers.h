@@ -44,7 +44,9 @@ void transmit   (double data, uint8_t header, uint32_t time);
 void debug      (void);
 void buzzFor    (unsigned int time_ms, unsigned int after = 0);
 void setParts   (void);
-
+void printPaddedInt16b(int16_t val);
+void printFormattedFloat(float val, uint8_t leading, uint8_t decimals);
+void printScaledAGMT(ICM_20948_I2C *sensor);
 
 ////    Functions definitions    ////
 void transmit(double data, uint8_t header, uint32_t time)
