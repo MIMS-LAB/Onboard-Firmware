@@ -59,6 +59,23 @@ void setup(void)
 
     Serial.printf("launching\n");
     
+    WIRE_PORT.begin();
+    WIRE_PORT.setClock(400000);
+
+    bool initialized = false;
+    while (!initialized){
+        myICM.begin(WIRE_PORT, AD0_VAL);
+
+        Serial.print(F("Initialization of the sensor returned: "));
+        Serial.println(myICM.statusString());
+        if (myICM.status != ICM_20948_Stat_Ok){
+            Serial.println("Trying again...");
+            delay(500);
+        }
+        else{
+            initialized = true;
+        }
+  }
 }
 
 ////    Main loop    ////
@@ -153,4 +170,15 @@ void loop(void)
 
     loopEndNoDelay:;
     
+    if (myICM.dataReady())
+    {
+        myICM.getAGMT();
+        printScaledAGMT(&myICM); 
+        delay(500);
+    }
+    else
+    {
+        Serial.println("Waiting for data");
+        delay(500);
+    }
 }
