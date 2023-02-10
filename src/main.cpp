@@ -38,7 +38,7 @@ void setup(void)
 
 
     // basically rfd uses the most power & since rocket is going to be idle on platorm for awhile dont do anything until bit is sent
-    while(true) 
+   /* while(true) 
     {
         if(RFD_SERIAL.available())
         {
@@ -54,7 +54,7 @@ void setup(void)
                 Serial.printf("command \"%s\" unrecognized\n", command.c_str());
             }
         }
-    }
+    }*/
     
 
     Serial.printf("launching\n");
@@ -169,7 +169,7 @@ void loop(void)
             ;
 
     loopEndNoDelay:;
-    
+
     if (myICM.dataReady())
     {
         myICM.getAGMT();
