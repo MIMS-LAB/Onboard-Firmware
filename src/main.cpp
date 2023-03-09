@@ -92,7 +92,7 @@ void loop(void)
 
     setParts();
 
-    // read ADXL357
+    // read ADXL357 (maybe delete)
     if (partsStates.adxl)
     {
         if (adxl357.isDataReady())
@@ -131,7 +131,19 @@ void loop(void)
         
     }
 
-    // print stuff to serial and SD card
+    if (myICM.dataReady())
+    {
+        myICM.getAGMT();
+        printScaledAGMT(&myICM); 
+        delay(500);
+    }
+    else
+    {
+        Serial.println("Waiting for data");
+        delay(500);
+    }
+
+    // print stuff to serial and SD card (need to call array for xyz, use equation for r here)
     sprintf(
         string, outputFormat,
         timestamp++, x, y, z, r, temp, pres, lat, lon);
@@ -170,15 +182,4 @@ void loop(void)
 
     loopEndNoDelay:;
 
-    if (myICM.dataReady())
-    {
-        myICM.getAGMT();
-        printScaledAGMT(&myICM); 
-        delay(500);
-    }
-    else
-    {
-        Serial.println("Waiting for data");
-        delay(500);
-    }
 }
