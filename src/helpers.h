@@ -4,7 +4,6 @@
 
 ////    Includes    ////
 #include <Arduino.h>
-#include <adxl357.h>
 #include <gps.h>
 #include <ms5611.h>
 #include <SD.h>
@@ -16,7 +15,6 @@
 #define RFD_BAUD      57600
 #define RFD_SERIAL    Serial2
 #define GPS_SERIAL    Serial1
-#define ADXL_WIRE     Wire
 #define BARO_WIRE     Wire2
 #define BUZZER        PIN_A13
 #define BUZZER_ENABLE PIN_A12
@@ -26,12 +24,10 @@
 #define AD0_VAL 0
 
 ////    Objects    ////
-Adxl357     adxl357;
 Ms5611      baro;
 GPS         gps;
 struct
 {
-    bool    adxl   = false;
     bool    baro   = false;
     bool    gps    = false;
     bool    sdcard = false;
@@ -44,7 +40,7 @@ void transmit   (double data, uint8_t header, uint32_t time);
 void debug      (void);
 void buzzFor    (unsigned int time_ms, unsigned int after = 0);
 void setParts   (void);
-void printScaledAGMT(ICM_20948_I2C *sensor);
+void getScaledAGMT(ICM_20948_I2C *sensor);
 
 ////    Functions definitions    ////
 void transmit(double data, uint8_t header, uint32_t time)
@@ -75,29 +71,6 @@ void buzzFor(unsigned int time_ms, unsigned int after)
 
 void setParts(void)
 {
-    // init ADXL357
-    if(!partsStates.adxl)
-    {
-        if(adxl357.init(ADXL357_DEF_ADD, &ADXL_WIRE))
-        {
-            partsStates.adxl = false;
-            Serial.println("ADXL init error");
-            buzzFor(500, 50);
-            buzzFor(50, 250);
-        }
-        else
-        {
-            adxl357.setAccelRange(ADXL357_FOUTY_G);
-            adxl357.setPowerCTL(ADXL357_ALL_ON);
-            adxl357.setCalibrationConstant(1.0 / (double) 12490);  // calculate your own calibration constant
-
-            partsStates.adxl = true;
-            Serial.println("ADXL357 init OK");
-            buzzFor(50, 100);
-        }
-    }
-
-
     // init MS5611
     if(!partsStates.baro)
     {
@@ -165,9 +138,9 @@ void setParts(void)
 #endif  //  #ifndef __RRC_HELPER_FUNCS__
 
 //IMU
-void printScaledAGMT(ICM_20948_I2C *sensor) //array [0]
+void getScaledAGMT(ICM_20948_I2C *sensor,float *x,float *y,float *z) //array [0]
 {
-  printFormattedFloat(sensor->accX(), 5, 2);
-  printFormattedFloat(sensor->accY(), 5, 2);
-  printFormattedFloat(sensor->accZ(), 5, 2);
+  *x = sensor->accX();
+  *y = sensor->accY();
+  *z = sensor->accZ();
 }

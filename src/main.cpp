@@ -86,31 +86,11 @@ void loop(void)
 
     double temp, pres, lon, lat;
     //float PDOP, VDOP, HDOP;
-    double x, y, z, r = 0;
+    float x, y, z, r = 0;
     char string[256] = {0};
     uint32_t start = millis(); // store current time
 
     setParts();
-
-    // read ADXL357 (maybe delete)
-    if (partsStates.adxl)
-    {
-        if (adxl357.isDataReady())
-        {
-            if (adxl357.getScaledAccelData(&x, &y, &z))
-            {
-                Serial.printf("acceleration read failed\n");
-                goto accelReadBreak;
-            }
-
-            r = sqrt(x * x + y * y + z * z);
-        }
-        else
-        {
-            Serial.printf("acceleration data is not ready\n");
-        }
-        accelReadBreak:;
-    }
 
     // read MS5611
     if(partsStates.baro)
@@ -134,7 +114,8 @@ void loop(void)
     if (myICM.dataReady())
     {
         myICM.getAGMT();
-        printScaledAGMT(&myICM); 
+        getScaledAGMT(&myICM, &x, &y, &z); 
+        r = sqrt(x * x + y * y + z * z);
         delay(500);
     }
     else
@@ -146,7 +127,7 @@ void loop(void)
     // print stuff to serial and SD card (need to call array for xyz, use equation for r here)
     sprintf(
         string, outputFormat,
-        timestamp++, x, y, z, r, temp, pres, lat, lon);
+        timestamp++, x/1000, y/1000, z/1000, r, temp, pres, lat, lon);
 
     Serial.printf("%s", string);
 
