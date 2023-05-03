@@ -22,7 +22,7 @@ void setup(void)
     buzzFor(1000, 1000);
 
     // start serial monitor
-    Serial.begin(9600);
+    Serial.begin(115200);
     if(!Serial)
     {
         buzzFor(100, 50);
@@ -38,7 +38,8 @@ void setup(void)
 
 
     // basically rfd uses the most power & since rocket is going to be idle on platorm for awhile dont do anything until bit is sent
-   /* while(true) 
+   /*
+   while(true) 
     {
         if(RFD_SERIAL.available())
         {
@@ -54,16 +55,18 @@ void setup(void)
                 Serial.printf("command \"%s\" unrecognized\n", command.c_str());
             }
         }
-    }*/
+    }
     
 
     Serial.printf("launching\n");
+    //RFD_SERIAL.printf("idle\n");
     
+*/
     WIRE_PORT.begin();
     WIRE_PORT.setClock(400000);
 
     bool initialized = false;
-    while (!initialized){
+    if (!initialized){
         myICM.begin(WIRE_PORT, AD0_VAL);
 
         Serial.print(F("Initialization of the sensor returned: "));
@@ -100,7 +103,7 @@ void loop(void)
             Serial.printf("baro read failed\n");
         }
     }
-    
+     
     // read gps
     if (partsStates.gps)
     {
@@ -116,12 +119,12 @@ void loop(void)
         myICM.getAGMT();
         getScaledAGMT(&myICM, &x, &y, &z); 
         r = sqrt(x * x + y * y + z * z);
-        delay(500);
+        //delay(500);
     }
     else
     {
         Serial.println("Waiting for data");
-        delay(500);
+       // delay(500);
     }
 
     // print stuff to serial and SD card (need to call array for xyz, use equation for r here)
@@ -148,6 +151,7 @@ void loop(void)
     }
 
     // encode and transmit data
+    
     transmit(x, RRC_HEAD_ACC_X, timestamp);
     transmit(y, RRC_HEAD_ACC_Y, timestamp);
     transmit(z, RRC_HEAD_ACC_Z, timestamp);
@@ -157,10 +161,12 @@ void loop(void)
     transmit(lon, RRC_HEAD_GPS_LONG, timestamp);
 
     // loop end lable
+    
     loopEnd:
-        while (millis() - start <= freq)
+        while (millis() - start <= freq) // print every 1 second
             ;
 
     loopEndNoDelay:;
+
 
 }
