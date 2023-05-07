@@ -36,6 +36,7 @@ void setup(void)
 
     setParts();
 
+    RFD_SERIAL.printf("idle\n");
 
     // basically rfd uses the most power & since rocket is going to be idle on platorm for awhile dont do anything until bit is sent
    /*
@@ -103,7 +104,9 @@ void loop(void)
             Serial.printf("baro read failed\n");
         }
     }
-     
+    int numbSat, quality;
+    char opMode;
+    float HDOP, PDOP, sigStrength;
     // read gps
     if (partsStates.gps)
     {
@@ -111,9 +114,22 @@ void loop(void)
         {
             Serial.printf("gps RMC read failed\n");
         }
-        
+        /*if (gps.read_GSA(&opMode, &HDOP, &PDOP, 1000))
+        {
+            Serial.println(F("GSA read fail"));
+        }
+        delay(100);
+        if (gps.read_GSV(&numbSat, &sigStrength, 1000))
+        {
+            Serial.println(F("GSV read fail"));
+        }
+        delay(100);
+        if (gps.read_GGA(&quality, 1000))
+        {
+            Serial.println(F("GGA read fail"));
+        }*/
     }
-
+    
     if (myICM.dataReady())
     {
         myICM.getAGMT();
