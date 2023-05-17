@@ -15,12 +15,12 @@
 #define RFD_BAUD      38400
 #define RFD_SERIAL    Serial2
 #define GPS_SERIAL    Serial7
-#define BARO_WIRE     Wire
+#define BARO_WIRE     Wire1
 #define BUZZER        PIN_A12
 #define BUZZER_ENABLE PIN_A13
 #define startSerial_ms_timeDelay 90000
 //#define startSerial_min_timeDelay 15
-#define WIRE_PORT Wire1
+#define WIRE_PORT Wire
 #define AD0_VAL 1
 
 ////    Objects    ////
