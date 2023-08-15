@@ -12,16 +12,28 @@
 
 
 ////    Defines    ////
-#define RFD_BAUD      38400
+#define RFD_BAUD      115200
 #define RFD_SERIAL    Serial2
 #define GPS_SERIAL    Serial7
 #define BARO_WIRE     Wire1
 #define BUZZER        PIN_A12
-#define BUZZER_ENABLE PIN_A13
-#define startSerial_ms_timeDelay 90000
-//#define startSerial_min_timeDelay 15
-#define WIRE_PORT Wire
-#define AD0_VAL 1
+#define BUZZER_ENABLE PIN_A13//always apply
+#define IMU_WIRE Wire
+#define AD0_VAL 0
+#define SERIAL_MONITOR_BAUD 115200
+#define freq 4000
+
+////    Constants    ////
+String logFileName = "log.txt";
+const char outputFormat[] =
+    R"""(
+timestamp:   %lu
+x = %lf g    y = %lf g   z = %lf g   total = %lf g
+T = %lf C    P = %lf mbar
+Location:    %lf, %lf
+
+)""";
+
 
 ////    Objects    ////
 Ms5611      baro;
