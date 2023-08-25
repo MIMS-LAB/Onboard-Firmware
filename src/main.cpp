@@ -174,12 +174,16 @@ void loop(void)
         }
         else
         {
-            if (counter<=5)
+            if (counter<=5) // 5 seconds total ; triggers once a second
             {
                 RFD_SERIAL.printf("idle\n");
                 delay(1000);
               
                 counter++;
+            }
+            else if (counter>=9999)
+            {
+                counter =0; // reset the counter
             }
 
             Serial.printf("command \"%s\" unrecognized\n", command.c_str());
