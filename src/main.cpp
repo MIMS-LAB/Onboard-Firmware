@@ -32,31 +32,7 @@ void setup(void)
 
     RFD_SERIAL.printf("idle\n");
 
-    // basically rfd uses the most power & since rocket is going to be idle on platorm for awhile dont do anything until bit is sent
-    /*
-    while(true)
-     {
-         if(RFD_SERIAL.available())
-         {
-             String command = RFD_SERIAL.readStringUntil('\n');
-             command.toLowerCase();
-
-             if(command.equals("launch"))
-             {
-                 break;
-             }
-             else
-             {
-                 Serial.printf("command \"%s\" unrecognized\n", command.c_str());
-             }
-         }
-     }
-
-
-     Serial.printf("launching\n");
-     //RFD_SERIAL.printf("idle\n");
-
- */
+    
     IMU_WIRE.begin();
     IMU_WIRE.setClock(400000);
 
@@ -161,7 +137,8 @@ void loop(void)
 
     // encode and transmit data
 
-    if (rfd_comms_ini == true)
+    if (rfd_comms_ini == true)// basically rfd uses the most power & since rocket is going to be idle on platorm for awhile dont do anything until bit is sent
+    
     {
 
         String command = RFD_SERIAL.readStringUntil('\n');
@@ -174,9 +151,13 @@ void loop(void)
         }
         else
         {
-            if (counter<=5) // 5 seconds total ; triggers once a second
+            if (counter<=30) // 30 seconds total ; triggers once a second
             {
                 RFD_SERIAL.printf("idle\n");
+				   RFD_SERIAL.printf("idle\n");
+            RFD_SERIAL.printf("idle\n");
+ 
+
                 delay(1000);
               
                 counter++;
@@ -185,8 +166,10 @@ void loop(void)
             {
                 counter =0; // reset the counter
             }
-
-            Serial.printf("command \"%s\" unrecognized\n", command.c_str());
+            
+          // Serial.printf("command \"%s\" unrecognized\n", command.c_str());
+   
+              
         }
     }
     else
