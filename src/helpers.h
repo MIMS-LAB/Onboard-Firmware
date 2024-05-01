@@ -13,7 +13,7 @@
 
 
 ////    Defines    ////
-#define RFD_BAUD      115200
+#define RFD_BAUD      57600
 #define RFD_SERIAL    Serial2
 #define GPS_SERIAL    Serial7
 #define BARO_WIRE     Wire2

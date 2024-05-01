@@ -184,11 +184,11 @@ void loop(void)
 
         String command = RFD_SERIAL.readStringUntil('\n');
         command.toLowerCase();
-        /*if (command.equals("launch"))
+        if (command.equals("launch"))
         {
             rfd_comms_ini = false;
             Serial.printf("launching\n");
-            RFD_SERIAL.printf("start\n");
+
         }
         else
         {
@@ -196,16 +196,23 @@ void loop(void)
             {
                 RFD_SERIAL.printf("idle\n");
                 delay(1000);
-
-                counter++;
+                
             }
-            else if (counter >= 9999)
+            else if (counter >= 7)
             {
                 counter = 0; // reset the counter
             }
-
-            Serial.printf("command \"%s\" unrecognized\n", command.c_str());
+            counter++;
+            Serial.printf("command \"%s\" unrecognized %d \n", command.c_str(),counter);
         }
+    }
+
+    else
+    {
+        RFD_SERIAL.println(string);
+        Serial.println("transmitting");
+    }
+    /*
     }
     else
     {
@@ -216,11 +223,13 @@ void loop(void)
         transmit(temp, RRC_HEAD_TEMP, timestamp);
         transmit(pres, RRC_HEAD_PRESS, timestamp);
         transmit(lat, RRC_HEAD_GPS_LAT, timestamp);
-        transmit(lon, RRC_HEAD_GPS_LONG, timestamp);*/
-        RFD_SERIAL.println(outputFormat);
-        // transmit(volt_battery,RRC_HEAD_BATT_V,timestamp);
-        Serial.println("transmitting");
+        transmit(lon, RRC_HEAD_GPS_LONG, timestamp);
+        // transmit(volt_battery,RRC_HEAD_BATT_V,timestamp);    
+        
     }
+    */
+
+
     while (millis() - start <= 4000) // print every 4 second
     {
         
