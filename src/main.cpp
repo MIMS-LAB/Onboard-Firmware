@@ -22,11 +22,6 @@ void setup(void)
     pinMode(BUZZER, OUTPUT);
     pinMode(BUZZER_ENABLE, INPUT_PULLUP);
 
-    pinMode(PIN_RED, OUTPUT);
-    pinMode(PIN_GREEN, OUTPUT);
-    pinMode(PIN_BLUE, OUTPUT);
-
-    buzzFor(1000, 1000);
     Wire.begin();
     Wire1.begin();
     Wire2.begin();
@@ -36,13 +31,6 @@ void setup(void)
     if (!ina260.begin())
     {
         buzzFor(100, 100);
-        errorLED(1);
-        errorLED(0);
-        delay(100);
-        errorLED(1);
-        errorLED(0);
-        delay(100);
-        errorLED(1);
     }
 
     // start serial monitor
@@ -60,29 +48,27 @@ void setup(void)
     setParts();
 
     // basically rfd uses the most power & since rocket is going to be idle on platorm for awhile dont do anything until bit is sent
-    /*
-    while(true)
-     {
-        //RFD_SERIAL.printf("idle\n");
-         if(RFD_SERIAL.available())
-         {
-             String command = RFD_SERIAL.readStringUntil('\n');
-             command.toLowerCase();
 
-             if(command.equals("launch"))
-             {
-                 break;
-             }
-             else
-             {
-                 Serial.printf("command \"%s\" unrecognized\n", command.c_str());
-             }
-         }
-     }
+    while (true)
+    {
+        // RFD_SERIAL.printf("idle\n");
+        if (RFD_SERIAL.available())
+        {
+            String command = RFD_SERIAL.readStringUntil('\n');
+            command.toLowerCase();
 
+            if (command.equals("launch"))
+            {
+                break;
+            }
+            else
+            {
+                Serial.printf("command \"%s\" unrecognized\n", command.c_str());
+            }
+        }
+    }
 
-     Serial.printf("launching\n");
-    */
+    Serial.printf("launching\n");
 }
 
 ////    Main loop    ////
@@ -101,41 +87,23 @@ void loop(void)
         if (baro.getTempPress(&temp, &pres))
         {
             Serial.printf("baro read failed\n");
-            errorLED(1);
             buzzFor(250, 250);
-
-            if (led_debug)
-            {
-                errorLED(6);
-                delay(250);
-
-                errorLED(1);
-            }
-            else 
-            {led_debug=false; 
-            }
         }
+    }
+
+    if (mpu.getErr())
+    {
+        mpu.pwr_setup();
+        mpu.acc_setup(1);
+        Serial.printf("imu read failed\n");
+        buzzFor(20, 20);
+
+        mpu.get_acc(1, &imu_acc);
     }
 
     else
     {
-        errorLED(1);
-        delay(250);
-    }
-
-    if(mpu.getErr()){
-        mpu.pwr_setup();
-        mpu.acc_setup(1);
-        Serial.printf("imu read failed\n");
-        errorLED(2);
-        buzzFor(250,250);
-
-        delay(100);
-        mpu.get_acc(1,&imu_acc);
-    }
-
-    else{
-        mpu.get_acc(1,&imu_acc);
+        mpu.get_acc(1, &imu_acc);
     }
 
     int numbSat, quality;
@@ -148,8 +116,7 @@ void loop(void)
         if (gps.read_RMC(&lon, &lat, 4000))
         {
             Serial.printf("gps RMC read failed\n");
-            errorLED(3);
-            // buzzFor(250,250);
+            buzzFor(250, 250);
         }
     }
 
@@ -172,8 +139,8 @@ void loop(void)
         else
         {
             Serial.printf("error opening %s\n", logFileName.c_str());
-            errorLED(3);
             partsStates.sdcard = false;
+            buzzFor(100, 20);
         }
     }
 
@@ -188,35 +155,33 @@ void loop(void)
         {
             rfd_comms_ini = false;
             Serial.printf("launching\n");
-
         }
         else
         {
-            if (counter <= 5) // 5 seconds total ; triggers once a second
+            if (counter == 20) // triggers every 20seconds
             {
                 RFD_SERIAL.printf("idle\n");
-                delay(1000);
-                
             }
-            else if (counter >= 7)
+            else
             {
                 counter = 0; // reset the counter
+                delay(1000);
             }
             counter++;
-            Serial.printf("command \"%s\" unrecognized %d \n", command.c_str(),counter);
+            Serial.printf("command \"%s\" unrecognized %d \n", command.c_str(), counter);
         }
     }
-
-    else
-    {
-        RFD_SERIAL.println(string);
-        Serial.println("transmitting");
-    }
     /*
-    }
+        else
+        {
+            RFD_SERIAL.println(string);
+            Serial.println("transmitting");
+        }
+
+        }*/
     else
     {
-        
+
         transmit(x, RRC_HEAD_ACC_X, timestamp);
         transmit(y, RRC_HEAD_ACC_Y, timestamp);
         transmit(z, RRC_HEAD_ACC_Z, timestamp);
@@ -224,14 +189,10 @@ void loop(void)
         transmit(pres, RRC_HEAD_PRESS, timestamp);
         transmit(lat, RRC_HEAD_GPS_LAT, timestamp);
         transmit(lon, RRC_HEAD_GPS_LONG, timestamp);
-        // transmit(volt_battery,RRC_HEAD_BATT_V,timestamp);    
-        
+        transmit(volt_battery, RRC_HEAD_BATT_V, timestamp);
     }
-    */
-
 
     while (millis() - start <= 4000) // print every 4 second
     {
-        
     }
 }
