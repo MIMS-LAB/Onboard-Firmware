@@ -9,11 +9,10 @@
 #include <MPU6050.h> 
 #include <SD.h>
 #include "rrc_encoder/src/rrc_encoder.h"
-#include "rrc_encoder/src/rrc_encoder_experimental.h"
 
 
 ////    Defines    ////
-+
+
 #define RFD_BAUD      57600
 #define RFD_SERIAL    Serial2
 #define GPS_SERIAL    Serial7
@@ -32,7 +31,7 @@ bool led_debug = false;
 
 ////    Constants    ////
 String logFileName = "log.txt";
-
+/*
 
 const char outputFormat[] =
     R"""(
@@ -43,11 +42,12 @@ T = %lf C    P = %lf mbar
 Location:    %lf, %lf
 
 )""";
-/*
+*/
+
 const char outputFormat[] =
     R"""(%lu,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf
 )""";
-*/
+
 ////    Objects    ////
 Ms5611      baro;
 GPS         gps;
@@ -69,7 +69,7 @@ void setParts   (void);
 void transmit(double data, uint8_t header, uint32_t time)
 {
     uint8_t  package[10] = {0};
-    encode_experimental(data, header, time, package);
+    encode(data, header, time, package);
     RFD_SERIAL.write(package, 10);
 }
 

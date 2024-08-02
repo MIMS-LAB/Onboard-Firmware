@@ -22,12 +22,14 @@ void setup(void)
     pinMode(BUZZER, OUTPUT);
     pinMode(BUZZER_ENABLE, INPUT_PULLUP);
 
+
     Wire.begin();
     Wire1.begin();
     Wire2.begin();
     ina260.begin();
     mpu.pwr_setup();
     mpu.acc_setup(1);
+  
     if (!ina260.begin())
     {
         buzzFor(100, 100);
@@ -35,38 +37,32 @@ void setup(void)
 
     // start serial monitor
     Serial.begin(SERIAL_MONITOR_BAUD);
-    if (!Serial)
-    {
-        buzzFor(100, 50);
-        buzzFor(100, 500);
-    }
-    else
-    {
-        Serial.println("serial monitor started");
-    }
 
     setParts();
+    pinMode(34, OUTPUT);
+    digitalWrite(34, LOW);
 
     // basically rfd uses the most power & since rocket is going to be idle on platorm for awhile dont do anything until bit is sent
-
-    while (true)
-    {
-        // RFD_SERIAL.printf("idle\n");
-        if (RFD_SERIAL.available())
+    /*
+        while (true)
         {
-            String command = RFD_SERIAL.readStringUntil('\n');
-            command.toLowerCase();
+            // RFD_SERIAL.printf("idle\n");
+            if (RFD_SERIAL.available())
+            {
+                String command = RFD_SERIAL.readStringUntil('\n');
+                command.toLowerCase();
 
-            if (command.equals("launch"))
-            {
-                break;
-            }
-            else
-            {
-                Serial.printf("command \"%s\" unrecognized\n", command.c_str());
+                if (command.equals("launch"))
+                {
+                    break;
+                }
+                else
+                {
+                    Serial.printf("command \"%s\" unrecognized\n", command.c_str());
+                }
             }
         }
-    }
+        */
 
     Serial.printf("launching\n");
 }
@@ -145,6 +141,7 @@ void loop(void)
     }
 
     // encode and transmit data
+    rfd_comms_ini = false;
 
     if (rfd_comms_ini == true)
     {
@@ -179,17 +176,12 @@ void loop(void)
         }
 
         }*/
+    /**/
     else
     {
 
-        transmit(x, RRC_HEAD_ACC_X, timestamp);
-        transmit(y, RRC_HEAD_ACC_Y, timestamp);
-        transmit(z, RRC_HEAD_ACC_Z, timestamp);
-        transmit(temp, RRC_HEAD_TEMP, timestamp);
-        transmit(pres, RRC_HEAD_PRESS, timestamp);
-        transmit(lat, RRC_HEAD_GPS_LAT, timestamp);
-        transmit(lon, RRC_HEAD_GPS_LONG, timestamp);
-        transmit(volt_battery, RRC_HEAD_BATT_V, timestamp);
+        RFD_SERIAL.printf(string);
+        Serial.println("transmitting");
     }
 
     while (millis() - start <= 4000) // print every 4 second
