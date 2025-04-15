@@ -3,79 +3,47 @@
 #include <math.h>
 #include <Wire.h>
 #include "helpers.h"
-#include <Adafruit_INA260.h>
-bool rfd_comms_ini = true;
 
-double temp, pres, lon, lat;
-// float PDOP, VDOP, HDOP;
-MPU mpu;
-AStruct imu_acc;
-Adafruit_INA260 ina260 = Adafruit_INA260();
-
-float x, y, z, r = 0;
-uint32_t start;
-uint8_t counter = 0;
 ////    Initilization setup    ////
 void setup(void)
 {
 
     pinMode(BUZZER, OUTPUT);
-    pinMode(BUZZER_ENABLE, INPUT_PULLUP);
-
+    pinMode(pin_thermistor, INPUT);
 
     Wire.begin();
     Wire1.begin();
     Wire2.begin();
-    ina260.begin();
     mpu.pwr_setup();
     mpu.acc_setup(1);
-  
-    if (!ina260.begin())
-    {
-        buzzFor(100, 100);
-    }
+    mpu.gyro_setup(1);
+    mpu.get_acc(1, &imu_acc);
+    angleX = rad_to_deg(atan(imu_acc.ZAxis / imu_acc.XAxis));
+    angleY = rad_to_deg(atan(imu_acc.ZAxis / imu_acc.YAxis));
+    angleZ = rad_to_deg(atan(imu_acc.YAxis / imu_acc.ZAxis));
+
+    angleX_old = angleX;
+    angleY_old = angleY;
+    angleZ_old = angleZ;
 
     // start serial monitor
     Serial.begin(SERIAL_MONITOR_BAUD);
 
     setParts();
-    pinMode(34, OUTPUT);
-    digitalWrite(34, LOW);
-
-    // basically rfd uses the most power & since rocket is going to be idle on platorm for awhile dont do anything until bit is sent
-    /*
-        while (true)
-        {
-            // RFD_SERIAL.printf("idle\n");
-            if (RFD_SERIAL.available())
-            {
-                String command = RFD_SERIAL.readStringUntil('\n');
-                command.toLowerCase();
-
-                if (command.equals("launch"))
-                {
-                    break;
-                }
-                else
-                {
-                    Serial.printf("command \"%s\" unrecognized\n", command.c_str());
-                }
-            }
-        }
-        */
 
     Serial.printf("launching\n");
+    radio_SERIAL.printf("launching\n");
+
+
 }
 
 ////    Main loop    ////
 void loop(void)
 {
     static uint32_t timestamp = 0;
-    char string[256] = {0};
+    char string[400] = {0};
     start = millis(); // store current time
-
     setParts();
-    float volt_battery = ina260.readBusVoltage();
 
     // read MS5611
     if (partsStates.baro)
@@ -83,45 +51,47 @@ void loop(void)
         if (baro.getTempPress(&temp, &pres))
         {
             Serial.printf("baro read failed\n");
+
             buzzFor(250, 250);
         }
     }
 
+    // read IMU:
     if (mpu.getErr())
     {
         mpu.pwr_setup();
         mpu.acc_setup(1);
+        mpu.gyro_setup(1);
+
         Serial.printf("imu read failed\n");
         buzzFor(20, 20);
-
-        mpu.get_acc(1, &imu_acc);
     }
 
     else
     {
         mpu.get_acc(1, &imu_acc);
+        mpu.get_gyro(1, &imu_gyro);
+        accel_resultant = sqrt(pow(imu_acc.XAxis, 2) + pow(imu_acc.YAxis, 2) + pow(imu_acc.ZAxis, 2));
+        angleX = rad_to_deg(atan(imu_acc.ZAxis / imu_acc.XAxis));
+        angleY = rad_to_deg(atan(imu_acc.ZAxis / imu_acc.YAxis));
+        angleZ = rad_to_deg(atan(imu_acc.YAxis / imu_acc.ZAxis));
+        angleX_diff = angleX - angleX_old;
+        angleY_diff = angleY - angleY_old;
+        angleZ_diff = angleZ - angleZ_old;
     }
 
-    int numbSat, quality;
-    char opMode;
-    float HDOP, PDOP, sigStrength;
-    // read gps
+    gps.read_RMC(&lon, &lat, 400);
 
-    if (partsStates.gps)
-    {
-        if (gps.read_RMC(&lon, &lat, 4000))
-        {
-            Serial.printf("gps RMC read failed\n");
-            buzzFor(250, 250);
-        }
-    }
+    alt = ((pow((sea_press / pres), R_gas_const*temp_lapse_rate/gravitational_const) - 1.0) * (temp + 273.15 )) / (temp_lapse_rate); //(sea_temp/temp_lapse_rate)*(pow(pres/sea_press,R_gas_const*temp_lapse_rate/gravitational_const)-1); 
+    board_temp = analogToTemp(pin_thermistor);
 
     // print stuff to serial and SD card (need to call array for xyz, use equation for r here)
     sprintf(
         string, outputFormat,
-        timestamp++, volt_battery, imu_acc.XAxis, imu_acc.YAxis, imu_acc.ZAxis, temp, pres, lat, lon);
+        timestamp++, imu_acc.XAxis, imu_acc.YAxis, imu_acc.ZAxis, accel_resultant, imu_gyro.XAxis, imu_gyro.YAxis, imu_gyro.ZAxis, temp, pres, alt, board_temp, lat, lon, angleX, angleY, angleZ, angleX_diff, angleY_diff, angleZ_diff);
 
     Serial.printf("%s", string);
+    radio_SERIAL.printf("%s", string);
 
     if (partsStates.sdcard)
     {
@@ -138,53 +108,5 @@ void loop(void)
             partsStates.sdcard = false;
             buzzFor(100, 20);
         }
-    }
-
-    // encode and transmit data
-    rfd_comms_ini = false;
-
-    if (rfd_comms_ini == true)
-    {
-
-        String command = RFD_SERIAL.readStringUntil('\n');
-        command.toLowerCase();
-        if (command.equals("launch"))
-        {
-            rfd_comms_ini = false;
-            Serial.printf("launching\n");
-        }
-        else
-        {
-            if (counter == 20) // triggers every 20seconds
-            {
-                RFD_SERIAL.printf("idle\n");
-            }
-            else
-            {
-                counter = 0; // reset the counter
-                delay(1000);
-            }
-            counter++;
-            Serial.printf("command \"%s\" unrecognized %d \n", command.c_str(), counter);
-        }
-    }
-    /*
-        else
-        {
-            RFD_SERIAL.println(string);
-            Serial.println("transmitting");
-        }
-
-        }*/
-    /**/
-    else
-    {
-
-        RFD_SERIAL.printf(string);
-        Serial.println("transmitting");
-    }
-
-    while (millis() - start <= 4000) // print every 4 second
-    {
     }
 }
