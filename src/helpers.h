@@ -11,7 +11,7 @@
 
 //#include <MLX90614.h>
 #include <SD.h>
-#include <Adafruit_INA260.h>//#include <ina260.h>
+#include <ina260.h>//#include <Adafruit_INA260.h>/
 
 // =====================================================================================
 //                                    constants:
@@ -86,7 +86,8 @@ MPU mpu;
 AStruct imu_acc;
 GStruct imu_gyro;
 
-Adafruit_INA260 ina260 = Adafruit_INA260();//INA260 ina;
+//Adafruit_INA260 ina260 = Adafruit_INA260();
+INA260 ina;
 //MLX90614 mlx;
 
 
@@ -98,6 +99,7 @@ struct
     bool sdcard = false;
     bool radio = false;
     bool imu = false;
+   // bool ina = false; 
 } partsStates;
 
 // =====================================================================================

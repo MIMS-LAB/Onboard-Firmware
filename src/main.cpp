@@ -13,11 +13,11 @@ void setup(void)
     // start serial monitor
     Serial.begin(SERIAL_MONITOR_BAUD);
 
-    /// Wire.begin();
+    Wire.begin();
     // Wire1.begin();
     Wire2.begin();
 
-    ina260.begin(); // ina.config_setup();
+    ina.config_setup();//ina260.begin(); //
     setParts();
 
     //  mlx.pwmctrl();
@@ -74,7 +74,7 @@ void loop(void)
 
     // batt_temp = mlx.get_temp();                                                                                                         // mplx.get_temp(0); // analogToTemp(pin_thermistor);
 
-    batt_volt = ina260.readBusVoltage(); // ;//   //ina.get_volt(0);
+    batt_volt = ina.get_volt()/1000.0;//ina260.readBusVoltage()/1000.0; // ;//   //
 
     SR04_dist_cm = SR04_MICROSECONDS_TO_CENTIMETERS * SR04_Distance();
 

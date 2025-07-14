@@ -9,27 +9,27 @@ void INA260::config_setup()
     WIRE.endTransmission(true);
 }
 
-float INA260::get_volt(int Vnum)
+float INA260::get_volt()
 {
     WIRE.beginTransmission(ADDR);
     WIRE.write(INA260_REG_BUSVOLTAGE);
     WIRE.endTransmission(false);
     WIRE.requestFrom(ina_addr, (size_t)6, true);
 
-    float volt = WIRE.read() << 8 | WIRE.read();
+    float volt = WIRE.read() << 8 | (WIRE.read()); // MSB|lsb
 
 
-    return volt;
+    return volt_lsb_calib_val*volt;
 }
 
-float INA260::get_current(int Cnum)
+float INA260::get_current()
 {
     WIRE.beginTransmission(ADDR);
     WIRE.write(INA260_REG_CURRENT);
     WIRE.endTransmission(true);
     WIRE.requestFrom(ina_addr, (size_t)6, true);
 
-    float current = WIRE.read() << 8 | WIRE.read();
+    float current = WIRE.read() << 8 | WIRE.read(); // MSB|lsb
 
     return current;
 }
