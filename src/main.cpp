@@ -1,48 +1,40 @@
-////    Includes    ////
-#include <Arduino.h>
-#include <math.h>
-#include <Wire.h>
 #include "helpers.h"
-
-////    Initilization setup    ////
+// =====================================================================================
+//                                    Setup:
+// =====================================================================================
 void setup(void)
 {
 
-    pinMode(BUZZER, OUTPUT);
-    pinMode(pin_thermistor, INPUT);
-
-    Wire.begin();
-    Wire1.begin();
-    Wire2.begin();
-    mpu.pwr_setup();
-    mpu.acc_setup(1);
-    mpu.gyro_setup(1);
-    mpu.get_acc(1, &imu_acc);
-    angleX = rad_to_deg(atan(imu_acc.ZAxis / imu_acc.XAxis));
-    angleY = rad_to_deg(atan(imu_acc.ZAxis / imu_acc.YAxis));
-    angleZ = rad_to_deg(atan(imu_acc.YAxis / imu_acc.ZAxis));
-
-    angleX_old = angleX;
-    angleY_old = angleY;
-    angleZ_old = angleZ;
+    pinMode(BUZZER, OUTPUT); // buzzer pin for debugging
+  // SR04 ultrasonic sensor:
+    pinMode(ECHO_PIN, INPUT);  // what receives the soundwaves for parsing
+    pinMode(TRIG_PIN, OUTPUT); // what sends out the soundwave
 
     // start serial monitor
     Serial.begin(SERIAL_MONITOR_BAUD);
 
+    /// Wire.begin();
+    // Wire1.begin();
+    Wire2.begin();
+
+    ina260.begin(); // ina.config_setup();
     setParts();
+
+    //  mlx.pwmctrl();
 
     Serial.printf("launching\n");
     radio_SERIAL.printf("launching\n");
-
-
 }
 
-////    Main loop    ////
+// =====================================================================================
+//                                    Main Loop:
+// =====================================================================================
 void loop(void)
 {
-    static uint32_t timestamp = 0;
-    char string[400] = {0};
-    start = millis(); // store current time
+
+    uint32_t timestamp = millis();
+
+    String radio_read_old = radio_read;
     setParts();
 
     // read MS5611
@@ -57,38 +49,47 @@ void loop(void)
     }
 
     // read IMU:
-    if (mpu.getErr())
+
+    mpu.get_acc(1, &imu_acc);
+    mpu.get_gyro(1, &imu_gyro);
+    accel_resultant = sqrt(pow(imu_acc.XAxis, 2) + pow(imu_acc.YAxis, 2) + pow(imu_acc.ZAxis, 2));
+    angleX = rad_to_deg(atan(imu_acc.ZAxis / imu_acc.XAxis));
+    angleY = rad_to_deg(atan(imu_acc.ZAxis / imu_acc.YAxis));
+    angleZ = rad_to_deg(atan(imu_acc.YAxis / imu_acc.ZAxis));
+    angleX_diff = angleX - angleX_old;
+    angleY_diff = angleY - angleY_old;
+    angleZ_diff = angleZ - angleZ_old;
+
+    gps.read_RMC(&lon, &lat);
+    gps.read_GGA(&gps_quality, &gps_alt);
+
+    // convert pres from mbar to kpa:
+
+    pres = 0.1 * pres;
+    // convert air temp from degC to kelvin:
+
+    temp = temp + 273.15;
+
+    alt = (log(pres / sea_press) * R_gas_const * temp) / (-gravitational_const * molecular_weight_air) + alt_dt_toronto; // https://en.wikipedia.org/wiki/Barometric_formula
+
+    // batt_temp = mlx.get_temp();                                                                                                         // mplx.get_temp(0); // analogToTemp(pin_thermistor);
+
+    batt_volt = ina260.readBusVoltage(); // ;//   //ina.get_volt(0);
+
+    SR04_dist_cm = SR04_MICROSECONDS_TO_CENTIMETERS * SR04_Distance();
+
+    // joystick controls:
+    radio_read = radio_SERIAL.readStringUntil('\n');
+    if (radio_read != radio_read_old)
     {
-        mpu.pwr_setup();
-        mpu.acc_setup(1);
-        mpu.gyro_setup(1);
-
-        Serial.printf("imu read failed\n");
-        buzzFor(20, 20);
+        Serial.print("radio read joystick values");
+        Serial.println(radio_read.c_str());
     }
-
-    else
-    {
-        mpu.get_acc(1, &imu_acc);
-        mpu.get_gyro(1, &imu_gyro);
-        accel_resultant = sqrt(pow(imu_acc.XAxis, 2) + pow(imu_acc.YAxis, 2) + pow(imu_acc.ZAxis, 2));
-        angleX = rad_to_deg(atan(imu_acc.ZAxis / imu_acc.XAxis));
-        angleY = rad_to_deg(atan(imu_acc.ZAxis / imu_acc.YAxis));
-        angleZ = rad_to_deg(atan(imu_acc.YAxis / imu_acc.ZAxis));
-        angleX_diff = angleX - angleX_old;
-        angleY_diff = angleY - angleY_old;
-        angleZ_diff = angleZ - angleZ_old;
-    }
-
-    gps.read_RMC(&lon, &lat, 400);
-
-    alt = ((pow((sea_press / pres), R_gas_const*temp_lapse_rate/gravitational_const) - 1.0) * (temp + 273.15 )) / (temp_lapse_rate); //(sea_temp/temp_lapse_rate)*(pow(pres/sea_press,R_gas_const*temp_lapse_rate/gravitational_const)-1); 
-    board_temp = analogToTemp(pin_thermistor);
 
     // print stuff to serial and SD card (need to call array for xyz, use equation for r here)
     sprintf(
         string, outputFormat,
-        timestamp++, imu_acc.XAxis, imu_acc.YAxis, imu_acc.ZAxis, accel_resultant, imu_gyro.XAxis, imu_gyro.YAxis, imu_gyro.ZAxis, temp, pres, alt, board_temp, lat, lon, angleX, angleY, angleZ, angleX_diff, angleY_diff, angleZ_diff);
+        timestamp / 1000, imu_acc.XAxis, imu_acc.YAxis, imu_acc.ZAxis, accel_resultant, imu_gyro.XAxis, imu_gyro.YAxis, imu_gyro.ZAxis, temp, pres, alt, batt_volt, lat, lon, gps_quality, gps_alt, angleX, angleY, angleZ, angleX_diff, angleY_diff, angleZ_diff, SR04_dist_cm);
 
     Serial.printf("%s", string);
     radio_SERIAL.printf("%s", string);
