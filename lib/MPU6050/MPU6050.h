@@ -6,7 +6,7 @@
 #define __MPU6050_H__
 
 #define ADDR 0x68
-#define WIRE Wire2
+#define WIRE Wire
 //IMU Configurations registers
 #define PWR_MGMT_1 0x6B
 #define GYRO_CONFIG 0x1B
@@ -38,11 +38,6 @@ struct AStruct//acceleration
 struct GStruct//gyroscope
 {
     float XAxis,YAxis,ZAxis;
-};
-
-struct TStruct//temperature
-{
-    float TempC;
 };
 
 
