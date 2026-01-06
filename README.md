@@ -19,8 +19,12 @@ git submodule update
 The firmware at the moment successfuly does the folllwing:
 
 * Initlizie and read sensors:
-  * ADXL357 accelerometer
+  * MPU9250 IMU
   * MS5611 barometer
-  * Generic NMEA GPS
-* Write readings to builtin SD card
-* Transmit the collected data after encoding
+  * Generic NMEA GPS (BN220)
+  * INA260
+  * ESP32 CAMERA
+  * HC-SR04 ULTRASONIC SENSOR
+* RADIO IS THE XBEE S2C
+* CAMERA STREAM WITH ESP32 CAM
+
