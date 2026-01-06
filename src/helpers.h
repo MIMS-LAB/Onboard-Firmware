@@ -7,7 +7,7 @@
 #include <Wire.h>
 #include <gps.h>
 #include <ms5611.h>
-#include <MPU6050.h>
+#include <MPU9250.h>
 #include <Servo.h>
 // #include <MLX90614.h>
 #include <ina260.h> //#include <Adafruit_INA260.h>/
@@ -101,6 +101,8 @@ GPS gps;
 MPU mpu;
 AStruct imu_acc;
 GStruct imu_gyro;
+
+
 Servo esc, esc2,esc3,esc4; // create servo object to control a servo
 
 // Adafruit_INA260 ina260 = Adafruit_INA260();
@@ -192,10 +194,8 @@ void setParts(void)
 
     if (!partsStates.imu)
     {
+        mpu.init(1,1); 
 
-        mpu.pwr_setup();
-        mpu.acc_setup(1);
-        mpu.gyro_setup(1);
         mpu.get_acc(1, &imu_acc);
 
         angleX = rad_to_deg(atan(imu_acc.ZAxis / imu_acc.XAxis));
