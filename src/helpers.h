@@ -10,7 +10,6 @@
 #include <MPU6050.h>
 #include <Servo.h>
 // #include <MLX90614.h>
-#include <SD.h>
 #include <ina260.h> //#include <Adafruit_INA260.h>/
 
 // =====================================================================================
@@ -53,7 +52,6 @@ String radio_read, radio_read2, radio_read_old, radio_read_old2, radio_read3, ra
 const double alt_dt_toronto = 75.0; // in meters
 const int minPulse = 1000;          // Minimum pulse width for ESC (microseconds) - usually corresponds to stopped motor
 const int maxPulse = 2020;          // Maximum pulse width for ESC (microseconds) - usually corresponds to full throttle
-String logFileName = "droneLog.txt";
 const char outputFormat[] =
     R"""(
 timestamp:   %lu
@@ -113,7 +111,6 @@ struct
 {
     bool baro = false;
     bool gps = false;
-    bool sdcard = false;
     bool radio = false;
     bool imu = false;
     // bool ina = false;
@@ -123,7 +120,6 @@ struct
 //                                    protoypes:
 // =====================================================================================
 
-void buzzFor(unsigned int time_ms, unsigned int after = 0);
 void setParts(void);
 double rad_to_deg(double rad);
 float mapfloat(float x, float in_min, float in_max, float out_min, float out_max);
@@ -134,15 +130,7 @@ void rotateMotor(int i, int delayTime, float dutycycle_fraction);
 //                                    Functions:
 // =====================================================================================
 
-// buzzer function used for debugging:
-void buzzFor(unsigned int time_ms, unsigned int after)
-{
 
-    digitalWrite(BUZZER, HIGH);
-    delay(time_ms);
-    digitalWrite(BUZZER, LOW);
-    delay(after);
-}
 
 // Function to convert radians to degrees
 double rad_to_deg(double rad)
@@ -266,21 +254,6 @@ void setParts(void)
         Serial.println("radio init OK");
     }
 
-    // init SD card
-    if (!partsStates.sdcard)
-    {
-        if (!SD.begin(BUILTIN_SDCARD))
-        {
-            partsStates.sdcard = false;
-            Serial.println("SD Card init error");
-           // buzzFor(500, 50);
-        }
-        else
-        {
-            partsStates.sdcard = true;
-            Serial.println("SD Card init OK");
-        }
-    }
 }
 
 #endif

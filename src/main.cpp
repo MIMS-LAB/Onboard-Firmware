@@ -13,7 +13,7 @@ void setup(void)
 
     // motor stuff:
     esc.attach(MOTOR1_PWM_PIN);
-     esc2.attach(MOTOR2_PWM_PIN);
+    esc2.attach(MOTOR2_PWM_PIN);
     esc3.attach(MOTOR3_PWM_PIN);
     esc4.attach(MOTOR4_PWM_PIN);
 
@@ -54,7 +54,6 @@ void loop(void)
         {
             Serial.printf("baro read failed\n");
 
-            //buzzFor(250, 250);
         }
     }
 
@@ -98,7 +97,7 @@ void loop(void)
         if (radio_read != radio_read_old)
         {
 
-               /*
+            /*
             
          PUT YOUR flight CODE HERE   
             */
@@ -147,7 +146,7 @@ void loop(void)
 
     // rotateMotor(MOTOR1_PWM_PERIOD, DUTY_CYCLE_FRACT_Y);
 
-    // print stuff to serial and SD card (need to call array for xyz, use equation for r here)
+    // print stuff to serial 
     sprintf(
         string, outputFormat,
         timestamp / 1000, imu_acc.XAxis, imu_acc.YAxis, imu_acc.ZAxis, accel_resultant, imu_gyro.XAxis, imu_gyro.YAxis, imu_gyro.ZAxis, temp, pres, alt, (alt - alt_start), batt_volt, lat, lon, gps_quality, gps_alt, angleX_old, angleY_old, angleZ_old, angleX_diff, angleY_diff, angleZ_diff, SR04_dist_cm, 100 * DUTY_CYCLE_FRACT_T);
@@ -155,20 +154,4 @@ void loop(void)
  Serial.printf("%s", string);
     radio_SERIAL.printf("%s", string);
 
-    if (partsStates.sdcard)
-    {
-        File dataFile = SD.open(logFileName.c_str(), FILE_WRITE);
-
-        if (dataFile)
-        {
-            dataFile.println(string);
-            dataFile.close();
-        }
-        else
-        {
-            Serial.printf("error opening %s\n", logFileName.c_str());
-            partsStates.sdcard = false;
-            //buzzFor(100, 20);
-        }
-    }
 }
