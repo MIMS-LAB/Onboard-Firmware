@@ -24,6 +24,7 @@ The firmware at the moment successfuly does the folllwing:
   * Generic NMEA GPS (BN220)
   * INA260
   * HC-SR04 ULTRASONIC SENSOR
+* 4 MICRO QUADROTORS
 * RADIO IS THE XBEE S2C
 * CAMERA STREAM WITH ESP32 CAM
 
