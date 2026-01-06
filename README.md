@@ -28,3 +28,8 @@ The firmware at the moment successfuly does the folllwing:
 * RADIO IS THE XBEE S2C
 * CAMERA STREAM WITH ESP32 CAM
 
+## To Do List
+* calibrate barometer
+* calibrate imu
+* get gps to 10Hz update rate
+* reduce groundstation control to drone response latency
