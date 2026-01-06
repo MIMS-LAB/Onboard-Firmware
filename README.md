@@ -23,7 +23,6 @@ The firmware at the moment successfuly does the folllwing:
   * MS5611 barometer
   * Generic NMEA GPS (BN220)
   * INA260
-  * ESP32 CAMERA
   * HC-SR04 ULTRASONIC SENSOR
 * RADIO IS THE XBEE S2C
 * CAMERA STREAM WITH ESP32 CAM
